@@ -33,6 +33,7 @@ class PlaceHolder(NodeBase):
         super(PlaceHolder, self).__init__(name)
         self.trainable = False
         self.values = np.array(shape)
+        self.next_list = []
 
 
 class Edge(object):
@@ -49,3 +50,18 @@ class Neurons(NodeBase):
         super(Neurons, self).__init__(name)
         self.pre_list = []
         self.next_list = []
+
+
+def add_flow(src, op, name):
+    """
+    在src节点后增加op形成新的神经元dst
+    :param src: 源节点
+    :param op: 操作
+    ;param name: 新节点名字
+    :return: dst
+    """
+    dst = Neurons(name=name)
+    e = Edge(src_node=src, dst_node=dst, op=op)
+    dst.pre_list.append(e)
+    src.next_list.append(e)
+    return dst
