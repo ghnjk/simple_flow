@@ -22,6 +22,13 @@ class OperatorBase(object):
         """
         pass
 
+    def get_trainable_w(self):
+        """
+        获取可被训练的参数
+        :return:
+        """
+        return None
+
 
 class Multify(OperatorBase):
 
@@ -44,6 +51,13 @@ class Multify(OperatorBase):
         :return:
         """
         return x
+
+    def get_trainable_w(self):
+        """
+        获取可被训练的参数
+        :return:
+        """
+        return self.w
 
     def __str__(self):
         return "x * w" + str(np.array(self.w.values).shape)
@@ -71,6 +85,13 @@ class MatMul(OperatorBase):
         """
         return x
 
+    def get_trainable_w(self):
+        """
+        获取可被训练的参数
+        :return:
+        """
+        return self.w
+
     def __str__(self):
         return "matmul(x, w" + str(np.array(self.w.values).shape) + ")"
 
@@ -97,6 +118,13 @@ class Add(OperatorBase):
         """
         return 1
 
+    def get_trainable_w(self):
+        """
+        获取可被训练的参数
+        :return:
+        """
+        return self.w
+
     def __str__(self):
         return "x * w" + str(np.array(self.w.values).shape)
 
@@ -122,6 +150,13 @@ class Pow(OperatorBase):
         :return:
         """
         return self.n * np.power(x, self.n - 1)
+
+    def get_trainable_w(self):
+        """
+        获取可被训练的参数
+        :return:
+        """
+        return None
 
     def __str__(self):
         return "x ^ " + str(self.n)
@@ -151,6 +186,13 @@ class Softmax(OperatorBase):
         m = y.reshape(-1, 1)
         return np.diag(y) - np.dot(m, m.T)
 
+    def get_trainable_w(self):
+        """
+        获取可被训练的参数
+        :return:
+        """
+        return None
+
     def __str__(self):
         return "softmax(x)"
 
@@ -176,3 +218,13 @@ class Sigmoid(OperatorBase):
         :return:
         """
         return y * (1 - y)
+
+    def get_trainable_w(self):
+        """
+        获取可被训练的参数
+        :return:
+        """
+        return None
+
+    def __str__(self):
+        return "sigmoid(x)"

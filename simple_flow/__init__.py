@@ -2,6 +2,6 @@
 # -*- coding: UTF-8 -*-
 __all__ = {
     "node",
-    "edge",
+    "nn",
     "network"
 }

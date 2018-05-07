@@ -9,8 +9,6 @@ class NodeBase(object):
         self.name = name
         self.trainable = True
         self.values = None
-        self.next_edges = []
-        self.pre_edges = []
 
 
 class Variable(NodeBase):
@@ -35,3 +33,19 @@ class PlaceHolder(NodeBase):
         super(PlaceHolder, self).__init__(name)
         self.trainable = False
         self.values = np.array(shape)
+
+
+class Edge(object):
+
+    def __init__(self, src_node, dst_node, op):
+        self.src_node = src_node
+        self.dst_node = dst_node
+        self.op = op
+
+
+class Neurons(NodeBase):
+
+    def __init__(self, name):
+        super(Neurons, self).__init__(name)
+        self.pre_list = []
+        self.next_list = []
