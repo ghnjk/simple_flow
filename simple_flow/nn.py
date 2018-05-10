@@ -162,6 +162,43 @@ class Link(OperatorBase):
         return "link x"
 
 
+class ReduceSum(OperatorBase):
+
+    def __init__(self, axis=None):
+        self.w = None
+        self.axis = axis
+
+    def calc(self, x):
+        """
+        计算
+        :param x:
+        :return:
+        """
+        if self.axis is None:
+            return np.sum(x)
+        else:
+            return np.sum(x, axis=self.axis)
+
+    def derivative(self, x, y):
+        """
+        导数
+        :param y:
+        :param x:
+        :return:
+        """
+        return 1
+
+    def get_trainable_w(self):
+        """
+        获取可被训练的参数
+        :return:
+        """
+        return None
+
+    def __str__(self):
+        return "link x"
+
+
 class Pow(OperatorBase):
 
     def __init__(self, n):
@@ -261,3 +298,27 @@ class Sigmoid(OperatorBase):
 
     def __str__(self):
         return "sigmoid(x)"
+
+
+class VarInitializer(object):
+
+    def get_vars(self, shape, dtype=np.float32):
+        return np.array([], dtype=dtype)
+
+
+class RandomaInitializer(VarInitializer):
+
+    def __init__(self, scale=0.3):
+        self.scale = scale
+
+    def get_vars(self, shape, dtype=np.float32):
+        return np.random.normal(0, self.scale, size=shape)
+
+
+class ConstantInitializer(VarInitializer):
+
+    def __init__(self, v=0.0):
+        self.v = v
+
+    def get_vars(self, shape, dtype=np.float32):
+        return np.zeros(shape=shape, dtype=dtype) + self.v

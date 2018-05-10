@@ -13,13 +13,16 @@ class NodeBase(object):
         self.pre_list = []
         self.next_list = []
 
+    def __hash__(self):
+        return id(self)
+
 
 class Variable(NodeBase):
 
-    def __init__(self, name, shape):
+    def __init__(self, name, shape, initializer=nn.RandomaInitializer()):
         super(Variable, self).__init__(name)
         self.trainable = True
-        self.values = np.array(shape)
+        self.values = initializer.get_vars(shape=shape)
 
 
 class Constant(NodeBase):
@@ -87,6 +90,11 @@ class NetWork(object):
         self.mpNode = {}
 
     def parse(self, loss_node):
+        """
+        解析网络
+        :param loss_node:  目标节点
+        :return:
+        """
         self.in_nodes = []
         self.flow_nodes = []
         self.mpNode = {}
@@ -94,6 +102,32 @@ class NetWork(object):
         self.out_node = loss_node
         self._dfs_search_in_nodes(self.out_node)
         self._bfs_search_flows()
+
+    def forward_propagate(self, feed_dict):
+        """
+        前向传播
+        :param feed_dict: 用于替代place holder节点的数据
+        :return:
+        """
+        self.mpNode = {}
+        for node in self.flow_nodes:
+            if isinstance(node, Neurons):
+                node.values = None
+        for node in self.flow_nodes:
+            if isinstance(node, PlaceHolder):
+                if node not in feed_dict:
+                    raise Exception("feed_dict lack variable for name: " + node.name)
+                v = feed_dict[node]
+            else:
+                v = node.values
+            for e in node.next_list:
+                dst = e.dst_node
+                op = e.op
+                nv = op.calc(v)
+                if dst.values is None:
+                    dst.values = nv
+                else:
+                    dst.values += nv
 
     def _dfs_search_in_nodes(self, node):
         node_id = id(node)
@@ -108,6 +142,8 @@ class NetWork(object):
             self.in_nodes.append(node)
         for e in node.pre_list:
             self._dfs_search_in_nodes(e.src_node)
+        if len(node.pre_list) > 0 and not isinstance(node, Neurons):
+            raise Exception("inner node %s must be instance of Neurons" % node.anme)
 
     def _bfs_search_flows(self):
         q = []
