@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import numpy as np
+import nn
 
 
 class NodeBase(object):
@@ -9,6 +10,8 @@ class NodeBase(object):
         self.name = name
         self.trainable = True
         self.values = None
+        self.pre_list = []
+        self.next_list = []
 
 
 class Variable(NodeBase):
@@ -67,6 +70,13 @@ def add_flow(src, op, name):
     return dst
 
 
+def link_node(src, dst):
+    e = Edge(src_node=src, dst_node=dst, op=nn.Link())
+    dst.pre_list.append(e)
+    src.next_list.append(e)
+    return dst
+
+
 class NetWork(object):
 
     def __init__(self):
@@ -96,8 +106,8 @@ class NetWork(object):
         self.node_id_sets.add(node_id)
         if self.mpNode[node_id]["in_d"] == 0:
             self.in_nodes.append(node)
-        for p in node.pre_list:
-            self._dfs_search_in_nodes(p)
+        for e in node.pre_list:
+            self._dfs_search_in_nodes(e.src_node)
 
     def _bfs_search_flows(self):
         q = []
@@ -120,3 +130,18 @@ class NetWork(object):
                     del self.mpNode[c_id]
         if len(self.mpNode.keys()) != 0:
             raise Exception("invalid graph.may circle nodes in the network.")
+
+    def __str__(self):
+        s = "{network structure:"
+        s += "in_nodes: "
+        for node in self.in_nodes:
+            s += node.name
+            s += ", "
+        s += "\n"
+        s += "out_node: " + self.out_node.name
+        s += "\nflow nodes: "
+        for node in self.flow_nodes:
+            s += node.name
+            s += ", "
+        s += "}"
+        return s

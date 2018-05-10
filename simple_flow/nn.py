@@ -126,7 +126,40 @@ class Add(OperatorBase):
         return self.w
 
     def __str__(self):
-        return "x * w" + str(np.array(self.w.values).shape)
+        return "x + w" + str(np.array(self.w.values).shape)
+
+
+class Link(OperatorBase):
+
+    def __init__(self):
+        self.w = None
+
+    def calc(self, x):
+        """
+        计算
+        :param x:
+        :return:
+        """
+        return x
+
+    def derivative(self, x, y):
+        """
+        导数
+        :param y:
+        :param x:
+        :return:
+        """
+        return 1
+
+    def get_trainable_w(self):
+        """
+        获取可被训练的参数
+        :return:
+        """
+        return None
+
+    def __str__(self):
+        return "link x"
 
 
 class Pow(OperatorBase):
