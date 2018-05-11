@@ -88,6 +88,8 @@ class NetWork(object):
         self.flow_nodes = []
         self.node_id_sets = set()
         self.mpNode = {}
+        self.mpGradient = {}
+        self.mpNodeError = {}
 
     def parse(self, loss_node):
         """
@@ -98,6 +100,8 @@ class NetWork(object):
         self.in_nodes = []
         self.flow_nodes = []
         self.mpNode = {}
+        self.mpGradient = {}
+        self.mpNodeError = {}
         self.node_id_sets = set()
         self.out_node = loss_node
         self._dfs_search_in_nodes(self.out_node)
@@ -109,7 +113,6 @@ class NetWork(object):
         :param feed_dict: 用于替代place holder节点的数据
         :return:
         """
-        self.mpNode = {}
         for node in self.flow_nodes:
             if isinstance(node, Neurons):
                 node.values = None
@@ -118,16 +121,49 @@ class NetWork(object):
                 if node not in feed_dict:
                     raise Exception("feed_dict lack variable for name: " + node.name)
                 v = feed_dict[node]
+                node.values = v
             else:
                 v = node.values
             for e in node.next_list:
                 dst = e.dst_node
+                if id(dst) not in self.node_id_sets:
+                    continue
                 op = e.op
                 nv = op.calc(v)
                 if dst.values is None:
                     dst.values = nv
                 else:
                     dst.values += nv
+
+    def backward_propagate(self):
+        """
+        反向传播
+        :return:
+        """
+        self.mpNodeError = {}
+        self.mpGradient = {}
+        self.mpNodeError[self.out_node] = self.out_node.values
+        for i in range(len(self.flow_nodes) - 2, -1, -1):
+            node = self.flow_nodes[i]
+            error = None
+            # 计算每条边的损失反向传播
+            for e in node.next_list:
+                dst = e.dst_node
+                if dst not in self.mpNodeError:
+                    # 下游节点不可训练， 则本节点也不能训练
+                    error = None
+                    break
+                dst_error = self.mpNodeError[dst]
+                op_gradient = e.op.calc_gradient(x=node.values, y=dst.values, y_errors=dst_error)
+                self.mpGradient[e.op] = op_gradient
+                bp_error = e.op.backpropagete_error(x=node.values, y=dst.values, y_errors=dst_error)
+                if error is None:
+                    error = bp_error
+                else:
+                    error += bp_error
+            # print("node: ", node.name, "error: ", error)
+            if error is not None and node.trainable:
+                self.mpNodeError[node] = error
 
     def _dfs_search_in_nodes(self, node):
         node_id = id(node)

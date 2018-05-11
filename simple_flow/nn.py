@@ -3,6 +3,13 @@
 import numpy as np
 
 
+def calc_ele_count(shape):
+    res = 1
+    for i in shape:
+        res *= i
+    return res
+
+
 class OperatorBase(object):
 
     def calc(self, x):
@@ -13,11 +20,22 @@ class OperatorBase(object):
         """
         pass
 
-    def derivative(self, x, y):
+    def calc_gradient(self, x, y, y_errors):
         """
-        导数
+        计算参数梯度 dloss/dw
         :param y:
         :param x:
+        :param y_errors:
+        :return:
+        """
+        pass
+
+    def backpropagete_error(self, x, y, y_errors):
+        """
+        反向传播， 计算x的损失量
+        :param x:
+        :param y:
+        :param y_errors:
         :return:
         """
         pass
@@ -28,6 +46,9 @@ class OperatorBase(object):
         :return:
         """
         return None
+
+    def __hash__(self):
+        return id(self)
 
 
 class Multify(OperatorBase):
@@ -43,14 +64,25 @@ class Multify(OperatorBase):
         """
         return x * self.w.values
 
-    def derivative(self, x, y):
+    def calc_gradient(self, x, y, y_errors):
         """
-        导数
+        计算参数梯度 dloss/dw
         :param y:
         :param x:
+        :param y_errors:
         :return:
         """
-        return x
+        return x * y_errors
+
+    def backpropagete_error(self, x, y, y_errors):
+        """
+        反向传播， 计算x的损失量
+        :param x:
+        :param y:
+        :param y_errors:
+        :return:
+        """
+        return self.w.values * y_errors
 
     def get_trainable_w(self):
         """
@@ -76,14 +108,25 @@ class MatMul(OperatorBase):
         """
         return np.dot(x, self.w.values)
 
-    def derivative(self, x, y):
+    def calc_gradient(self, x, y, y_errors):
         """
-        导数
+        计算参数梯度 dloss/dw
         :param y:
         :param x:
+        :param y_errors:
         :return:
         """
-        return x
+        return np.dot(x.T,  y_errors)
+
+    def backpropagete_error(self, x, y, y_errors):
+        """
+        反向传播， 计算x的损失量
+        :param x:
+        :param y:
+        :param y_errors:
+        :return:
+        """
+        return np.dot(y_errors, self.w.values.T)
 
     def get_trainable_w(self):
         """
@@ -109,14 +152,35 @@ class Add(OperatorBase):
         """
         return x + self.w.values
 
-    def derivative(self, x, y):
+    def calc_gradient(self, x, y, y_errors):
         """
-        导数
+        计算参数梯度 dloss/dw
         :param y:
         :param x:
+        :param y_errors:
         :return:
         """
-        return 1
+        if y_errors.shape == self.w.values.shape:
+            return y_errors
+        elif self.w.values.shape == (1, ):
+            return np.sum(y_errors)
+        else:
+            raise Exception("calc_gradient failed")
+
+    def backpropagete_error(self, x, y, y_errors):
+        """
+        反向传播， 计算x的损失量
+        :param x:
+        :param y:
+        :param y_errors:
+        :return:
+        """
+        if x.shape == self.w.values.shape:
+            return y_errors
+        elif x.shape == (1, ):
+            return np.sum(y_errors)
+        else:
+            raise Exception("calc_gradient failed")
 
     def get_trainable_w(self):
         """
@@ -142,14 +206,25 @@ class Link(OperatorBase):
         """
         return x
 
-    def derivative(self, x, y):
+    def calc_gradient(self, x, y, y_errors):
         """
-        导数
+        计算参数梯度 dloss/dw
         :param y:
         :param x:
+        :param y_errors:
         :return:
         """
-        return 1
+        return None
+
+    def backpropagete_error(self, x, y, y_errors):
+        """
+        反向传播， 计算x的损失量
+        :param x:
+        :param y:
+        :param y_errors:
+        :return:
+        """
+        return y_errors
 
     def get_trainable_w(self):
         """
@@ -179,14 +254,35 @@ class ReduceSum(OperatorBase):
         else:
             return np.sum(x, axis=self.axis)
 
-    def derivative(self, x, y):
+    def calc_gradient(self, x, y, y_errors):
         """
-        导数
+        计算参数梯度 dloss/dw
         :param y:
         :param x:
+        :param y_errors:
         :return:
         """
-        return 1
+        return None
+
+    def backpropagete_error(self, x, y, y_errors):
+        """
+        反向传播， 计算x的损失量
+        :param x:
+        :param y:
+        :param y_errors:
+        :return:
+        """
+        if self.axis is None:
+            return np.zeros(shape=x.shape, dtype=np.float32) + y_errors
+        else:
+            ns = [x.shape[self.axis]]
+            for i in y_errors.shape:
+                ns.append(i)
+            a = np.empty(ns)
+            a[:] = y_errors
+            for i in range(self.axis):
+                a = np.swapaxes(a, i, i + 1)
+            return a
 
     def get_trainable_w(self):
         """
@@ -212,14 +308,25 @@ class Pow(OperatorBase):
         """
         return np.power(x, self.n)
 
-    def derivative(self, x, y):
+    def calc_gradient(self, x, y, y_errors):
         """
-        导数
+        计算参数梯度 dloss/dw
         :param y:
         :param x:
+        :param y_errors:
         :return:
         """
-        return self.n * np.power(x, self.n - 1)
+        return None
+
+    def backpropagete_error(self, x, y, y_errors):
+        """
+        反向传播， 计算x的损失量
+        :param x:
+        :param y:
+        :param y_errors:
+        :return:
+        """
+        return self.n * np.power(x, self.n - 1) * y_errors
 
     def get_trainable_w(self):
         """
@@ -246,15 +353,26 @@ class Softmax(OperatorBase):
         e_x = np.exp(x - np.max(x))
         return e_x / e_x.sum(axis=0)
 
-    def derivative(self, x, y):
+    def calc_gradient(self, x, y, y_errors):
         """
-        导数
+        计算参数梯度 dloss/dw
         :param y:
         :param x:
+        :param y_errors:
+        :return:
+        """
+        return None
+
+    def backpropagete_error(self, x, y, y_errors):
+        """
+        反向传播， 计算x的损失量
+        :param x:
+        :param y:
+        :param y_errors:
         :return:
         """
         m = y.reshape(-1, 1)
-        return np.diag(y) - np.dot(m, m.T)
+        return np.diag(y) - np.dot(m, m.T) * y_errors
 
     def get_trainable_w(self):
         """
@@ -280,14 +398,25 @@ class Sigmoid(OperatorBase):
         """
         return 1.0/(1.0+np.exp(-x))
 
-    def derivative(self, x, y):
+    def calc_gradient(self, x, y, y_errors):
         """
-        导数
-        :param x:
+        计算参数梯度 dloss/dw
         :param y:
+        :param x:
+        :param y_errors:
         :return:
         """
-        return y * (1 - y)
+        return None
+
+    def backpropagete_error(self, x, y, y_errors):
+        """
+        反向传播， 计算x的损失量
+        :param x:
+        :param y:
+        :param y_errors:
+        :return:
+        """
+        return y * (1 - y) * y_errors
 
     def get_trainable_w(self):
         """

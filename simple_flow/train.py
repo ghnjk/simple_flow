@@ -75,7 +75,7 @@ class GradientDecent(Optimizer):
         """
         # 前向传播
         self.net.forward_propagate(feed_dict)
-
+        self.net.backward_propagate()
 
     def apply_gradient(self):
         """
