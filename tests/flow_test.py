@@ -162,3 +162,46 @@ def test_backward_propagate():
         for e in node.next_list:
             if e.op in net.mpGradient and net.mpGradient[e.op] is not None:
                 print("gradient for ", e.op.w.name, " is ", net.mpGradient[e.op])
+
+
+def test_apply_gradient():
+    batch_size = 2
+    x = PlaceHolder(name="x", shape=[batch_size, 2])
+    w = Variable(name="w1", shape=[2, 2],
+                 initializer=ConstantInitializer(v=np.array([
+                     [2, 3],
+                     [3, 2]
+                 ]))
+                 )
+    b = Variable(name="bias1", shape=[batch_size, 2],
+                 initializer=ConstantInitializer(v=np.array([
+                     [3, 4],
+                     [1, 2]
+                 ])))
+    y = add_flow(x,
+                 MatMul(w),
+                 "multify_1")
+    y = add_flow(y,
+                 Add(b),
+                 "plus_1")
+    y = add_flow(y,
+                 ReduceSum(),
+                 "reduce_sum")
+    net = NetWork()
+    net.parse(y)
+    feed_dict = {
+        x: np.array([
+            [3, 0],
+            [0, 3]
+        ])
+    }
+    print("net: ", str(net))
+    net.forward_propagate(feed_dict=feed_dict)
+    assert 40 == y.values
+    for i in range(100):
+        net.backward_propagate()
+        net.apply_gradient(0.01)
+        net.forward_propagate(feed_dict=feed_dict)
+        print("epoch: ", i + 1, "loss: ", y.values)
+    print("w: ", w.values)
+    print("b: ", b.values)

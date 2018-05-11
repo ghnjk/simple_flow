@@ -42,7 +42,7 @@ class Optimizer(object):
 
 class GradientDecent(Optimizer):
 
-    def __init__(self, name = None):
+    def __init__(self, name=None):
         super(GradientDecent, self).__init__(name=name)
         self.lr = 0.001
         self.loss_node = None
@@ -82,4 +82,4 @@ class GradientDecent(Optimizer):
         将计算出来的梯度更新到所有参数中
         :return: None
         """
-        pass
+        self.net.apply_gradient(self.lr)

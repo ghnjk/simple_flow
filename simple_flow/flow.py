@@ -165,6 +165,13 @@ class NetWork(object):
             if error is not None and node.trainable:
                 self.mpNodeError[node] = error
 
+    def apply_gradient(self, lr):
+        for node in self.flow_nodes:
+            for e in node.next_list:
+                w = e.op.get_trainable_w()
+                if e.op in self.mpGradient and w is not None:
+                    w.values -= lr * self.mpGradient[e.op]
+
     def _dfs_search_in_nodes(self, node):
         node_id = id(node)
         if node_id in self.mpNode.keys():

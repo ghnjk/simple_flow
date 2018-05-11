@@ -3,5 +3,6 @@
   "flow_test.py::test_circle_network", 
   "flow_test.py::test_network_forward_propagate", 
   "flow_test.py::test_network_forward_propagate_2", 
-  "flow_test.py::test_backward_propagate"
+  "flow_test.py::test_backward_propagate", 
+  "flow_test.py::test_apply_gradient"
 ]
