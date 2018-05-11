@@ -3,5 +3,6 @@
 __all__ = {
     "flow",
     "nn",
-    "train"
+    "train",
+    "model"
 }

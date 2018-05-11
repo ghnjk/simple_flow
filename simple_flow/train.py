@@ -5,14 +5,14 @@ import flow
 
 class Optimizer(object):
 
-    def __init__(self, name):
+    def __init__(self, name, learning_rate):
         self.name = name
+        self.learning_rate = learning_rate
 
-    def mininize(self, loss, learning_rate):
+    def mininize(self, loss):
         """
         最小化loss节点
         :param loss: loss node
-        :param learning_rate: lr
         :return: None
         """
         pass
@@ -42,22 +42,19 @@ class Optimizer(object):
 
 class GradientDecent(Optimizer):
 
-    def __init__(self, name=None):
-        super(GradientDecent, self).__init__(name=name)
-        self.lr = 0.001
+    def __init__(self, name=None, learning_rate=0.001, lr_movement=1e-8):
+        super(GradientDecent, self).__init__(name=name, learning_rate=learning_rate)
         self.loss_node = None
-        self.lr_movement = 1e-6
+        self.lr_movement = lr_movement
         self.net = flow.NetWork()
 
-    def mininize(self, loss, learning_rate=0.001):
+    def mininize(self, loss):
         """
         最小化loss节点
         :param loss: loss node
-        :param learning_rate: lr
         :return: None
         """
         self.loss_node = loss
-        self.lr = learning_rate
         self.net.parse(self.loss_node)
 
     def prepare(self):
@@ -65,7 +62,9 @@ class GradientDecent(Optimizer):
         每次训练前准备
         :return:
         """
-        self.lr -= self.lr_movement
+        self.learning_rate -= self.lr_movement
+        if self.learning_rate < 1e-6:
+            self.learning_rate = 1e-6
 
     def calc_gradient(self, feed_dict):
         """
@@ -82,4 +81,4 @@ class GradientDecent(Optimizer):
         将计算出来的梯度更新到所有参数中
         :return: None
         """
-        self.net.apply_gradient(self.lr)
+        self.net.apply_gradient(self.learning_rate)

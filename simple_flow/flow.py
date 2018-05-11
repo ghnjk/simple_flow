@@ -129,11 +129,19 @@ class NetWork(object):
                 if id(dst) not in self.node_id_sets:
                     continue
                 op = e.op
+                if isinstance(op.get_trainable_w(), PlaceHolder):
+                    # 支持边上为输入参数
+                    w = op.get_trainable_w()
+                    if w not in feed_dict:
+                        raise Exception("feed_dict lack variable for name " + w.name)
+                    w.values = feed_dict[w]
+                    # print("w.values: ", w.values)
                 nv = op.calc(v)
                 if dst.values is None:
                     dst.values = nv
                 else:
                     dst.values += nv
+            # print("node: ", dst.name, " values:", dst.values)
 
     def backward_propagate(self):
         """
@@ -142,7 +150,8 @@ class NetWork(object):
         """
         self.mpNodeError = {}
         self.mpGradient = {}
-        self.mpNodeError[self.out_node] = self.out_node.values
+        error = np.zeros(shape=self.out_node.values.shape) + 1.0
+        self.mpNodeError[self.out_node] = error
         for i in range(len(self.flow_nodes) - 2, -1, -1):
             node = self.flow_nodes[i]
             error = None
@@ -154,8 +163,10 @@ class NetWork(object):
                     error = None
                     break
                 dst_error = self.mpNodeError[dst]
-                op_gradient = e.op.calc_gradient(x=node.values, y=dst.values, y_errors=dst_error)
-                self.mpGradient[e.op] = op_gradient
+                if e.op.get_trainable_w() is not None and e.op.get_trainable_w().trainable:
+                    op_gradient = e.op.calc_gradient(x=node.values, y=dst.values, y_errors=dst_error)
+                    # print("mpGradient: ", e.op.get_trainable_w().name, ", gradient: ", op_gradient)
+                    self.mpGradient[e.op] = op_gradient
                 bp_error = e.op.backpropagete_error(x=node.values, y=dst.values, y_errors=dst_error)
                 if error is None:
                     error = bp_error
@@ -166,10 +177,16 @@ class NetWork(object):
                 self.mpNodeError[node] = error
 
     def apply_gradient(self, lr):
+        """
+        根据计算出来的梯度， 对所有的变量做 -lr*gradient
+        :param lr:
+        :return:
+        """
         for node in self.flow_nodes:
             for e in node.next_list:
                 w = e.op.get_trainable_w()
-                if e.op in self.mpGradient and w is not None:
+                if e.op in self.mpGradient and w is not None and w.trainable:
+                    # print("w(", w.name, "): ", w.values, "gradients: ", self.mpGradient[e.op])
                     w.values -= lr * self.mpGradient[e.op]
 
     def _dfs_search_in_nodes(self, node):
