@@ -49,7 +49,7 @@ def min_batch_gradient_decnet(x_data, y_data):
         "loss"
     )
     model = Model(losses=loss, predicts=y_pre, optimizer=GradientDecent())
-    for epoch in range(100):
+    for epoch in range(200):
         batch = np.array(random.sample(zip(x_data, y_data), batch_size))
         x_batch = batch[:, 0]
         y_batch = batch[:, 1]
@@ -58,6 +58,8 @@ def min_batch_gradient_decnet(x_data, y_data):
             y: y_batch
         }
         model.fit(feed_dict=feed_dict, max_train_itr=50, verbose=0)
+        if epoch >= 200:
+            break
     # print("w_1: ", w_1.values, "b_1: ", b_1.values)
     # print("w_2: ", w_2.values, "b_2: ", b_2.values)
     print("gradient decent average loss: ", loss.values)
@@ -70,7 +72,7 @@ def min_batch_gradient_decnet(x_data, y_data):
 def main():
     x_data = np.linspace(-1, 1, 200)[:, np.newaxis]
     noise = np.random.normal(0, 2, x_data.shape)
-    a = -94
+    a = 94
     b = 21
     y_data = [a * i * i + b for i in x_data] + noise
     show_line(a, b + np.mean(noise), "real", color="blue")
