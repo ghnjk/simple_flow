@@ -13,3 +13,4 @@ log
 
 .idea
 .pytest_cache
+MNIST_data

@@ -4,5 +4,6 @@ __all__ = {
     "flow",
     "nn",
     "train",
+    "layer",
     "model"
 }

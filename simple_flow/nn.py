@@ -450,6 +450,50 @@ class Pow(OperatorBase):
         return "x ^ " + str(self.n)
 
 
+class Log(OperatorBase):
+
+    def __init__(self):
+        pass
+
+    def calc(self, x):
+        """
+        计算
+        :param x:
+        :return:
+        """
+        return np.log(x)
+
+    def calc_gradient(self, x, y, y_errors):
+        """
+        计算参数梯度 dloss/dw
+        :param y:
+        :param x:
+        :param y_errors:
+        :return:
+        """
+        return None
+
+    def backpropagete_error(self, x, y, y_errors):
+        """
+        反向传播， 计算x的损失量
+        :param x:
+        :param y:
+        :param y_errors:
+        :return:
+        """
+        return y_errors / x
+
+    def get_trainable_w(self):
+        """
+        获取可被训练的参数
+        :return:
+        """
+        return None
+
+    def __str__(self):
+        return "log(x)"
+
+
 class Relu(OperatorBase):
 
     def __init__(self):
@@ -511,8 +555,9 @@ class Softmax(OperatorBase):
         :param x:
         :return:
         """
-        e_x = np.exp(x - np.max(x))
-        return e_x / e_x.sum(axis=0)
+        tmp = x - np.max(x, axis=1).reshape(-1, 1)
+        e_x = np.exp(tmp)
+        return e_x / e_x.sum(axis=1).reshape(-1, 1)
 
     def calc_gradient(self, x, y, y_errors):
         """
@@ -532,8 +577,12 @@ class Softmax(OperatorBase):
         :param y_errors:
         :return:
         """
-        m = y.reshape(-1, 1)
-        return np.diag(y) - np.dot(m, m.T) * y_errors
+        # m = y.reshape(-1, 1)
+        # return (np.diag(y) - np.dot(m, m.T)) * y_errors
+        delta = y * y_errors
+        sm = delta.sum(axis=1, keepdims=True)
+        delta -= y * sm
+        return delta
 
     def get_trainable_w(self):
         """
