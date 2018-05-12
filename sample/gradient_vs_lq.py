@@ -26,8 +26,8 @@ def predict_with_gradient(x_data, y_data):
     from simple_flow.model import Model
     from simple_flow.train import GradientDecent
     batch_size = 16
-    x = PlaceHolder(name="x", shape=[batch_size, 1])
-    y = PlaceHolder(name="y", shape=[batch_size, 1])
+    x = PlaceHolder(name="x", shape=[None, 1])
+    y = PlaceHolder(name="y", shape=[None, 1])
     a = Variable(name="a", shape=[1, ])
     b = Variable(name="b", shape=[1, ], initializer=ConstantInitializer(0.1))
     ax = add_flow(x, Multify(a), name="a * x")
