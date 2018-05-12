@@ -166,13 +166,7 @@ class Add(OperatorBase):
         :param y_errors:
         :return:
         """
-        if y_errors.shape == self.w.values.shape:
-            return y_errors
-        elif self.w.values.shape == (1, ):
-            # print("np.sum", np.sum(y_errors))
-            return np.sum(y_errors)
-        else:
-            raise Exception("calc_gradient failed")
+        return np.sum(y_errors, axis=0)
 
     def backpropagete_error(self, x, y, y_errors):
         """
@@ -222,13 +216,7 @@ class Sub(OperatorBase):
         :param y_errors:
         :return:
         """
-        if y_errors.shape == y_errors.shape:
-            return - y_errors
-        elif self.w.values.shape == (1, ):
-            return - np.sum(y_errors)
-        else:
-            # print("y_errors:", y_errors)
-            raise Exception("calc_gradient failed")
+        return - np.sum(y_errors, axis=0)
 
     def backpropagete_error(self, x, y, y_errors):
         """
@@ -460,6 +448,56 @@ class Pow(OperatorBase):
 
     def __str__(self):
         return "x ^ " + str(self.n)
+
+
+class Relu(OperatorBase):
+
+    def __init__(self):
+        pass
+
+    def calc(self, x):
+        """
+        计算
+        :param x:
+        :return:
+        """
+        # print("x: ", x[0])
+        # print("relu: ", np.maximum(x[0], 0))
+        return np.maximum(x, 0)
+
+    def calc_gradient(self, x, y, y_errors):
+        """
+        计算参数梯度 dloss/dw
+        :param y:
+        :param x:
+        :param y_errors:
+        :return:
+        """
+        return None
+
+    def backpropagete_error(self, x, y, y_errors):
+        """
+        反向传播， 计算x的损失量
+        :param x:
+        :param y:
+        :param y_errors:
+        :return:
+        """
+        error = np.array(y_errors)
+        error[x < 0] = 0
+        # print(x[0])
+        # print(error[0])
+        return error
+
+    def get_trainable_w(self):
+        """
+        获取可被训练的参数
+        :return:
+        """
+        return None
+
+    def __str__(self):
+        return "relu(x)"
 
 
 class Softmax(OperatorBase):

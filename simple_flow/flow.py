@@ -38,7 +38,7 @@ class PlaceHolder(NodeBase):
     def __init__(self, name, shape):
         super(PlaceHolder, self).__init__(name)
         self.trainable = False
-        self.values = np.array(shape)
+        self.values = None  # np.array(shape)
         self.next_list = []
 
 
@@ -164,6 +164,7 @@ class NetWork(object):
                     break
                 dst_error = self.mpNodeError[dst]
                 if e.op.get_trainable_w() is not None and e.op.get_trainable_w().trainable:
+                    # print(dst.name)
                     op_gradient = e.op.calc_gradient(x=node.values, y=dst.values, y_errors=dst_error)
                     # print("mpGradient: ", e.op.get_trainable_w().name, ", gradient: ", op_gradient)
                     self.mpGradient[e.op] = op_gradient
