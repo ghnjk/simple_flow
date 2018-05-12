@@ -176,18 +176,24 @@ class NetWork(object):
             if error is not None and node.trainable:
                 self.mpNodeError[node] = error
 
-    def apply_gradient(self, lr):
+    def apply_gradient(self, lr, min_epsilon=1e-8):
         """
         根据计算出来的梯度， 对所有的变量做 -lr*gradient
         :param lr:
+        :param min_epsilon:
         :return:
         """
+        apply_count = 0
         for node in self.flow_nodes:
             for e in node.next_list:
                 w = e.op.get_trainable_w()
                 if e.op in self.mpGradient and w is not None and w.trainable:
                     # print("w(", w.name, "): ", w.values, "gradients: ", self.mpGradient[e.op])
-                    w.values -= lr * self.mpGradient[e.op]
+                    m = lr * self.mpGradient[e.op]
+                    if np.abs(np.sum(m)) > min_epsilon:
+                        apply_count += 1
+                    w.values -= m
+        return apply_count
 
     def _dfs_search_in_nodes(self, node):
         node_id = id(node)

@@ -27,21 +27,23 @@ class Model(object):
         self.optimizer = optimizer
         self.optimizer.mininize(self.loss_node)
 
-    def fit(self, feed_dict, epoch, verbose=True):
-        for i in range(epoch):
+    def fit(self, feed_dict, max_train_itr=10000, verbose=True):
+        for i in range(max_train_itr):
             start = time.time()
             self.optimizer.prepare()
             self.optimizer.calc_gradient(feed_dict=feed_dict)
-            self.optimizer.apply_gradient()
+            apply_count = self.optimizer.apply_gradient()
             end = time.time()
             if verbose:
                 use = round(end - start, 3)
-                print("epoch %d/%d use %0.3lf sec:  loss: %s" % (
+                print("train iter %d/%d use %0.3lf sec:  loss: %s" % (
                     i + 1,
-                    epoch,
+                    max_train_itr,
                     use,
                     str(self.loss_node.values)
                 ))
+            if apply_count <= 0:
+                break
 
     def predict(self, feed_dict):
         if isinstance(self.predict_node, flow.Neurons):

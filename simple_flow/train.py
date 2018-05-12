@@ -81,4 +81,4 @@ class GradientDecent(Optimizer):
         将计算出来的梯度更新到所有参数中
         :return: None
         """
-        self.net.apply_gradient(self.learning_rate)
+        return self.net.apply_gradient(self.learning_rate)

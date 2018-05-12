@@ -569,8 +569,8 @@ class RandomaInitializer(VarInitializer):
 
 class ConstantInitializer(VarInitializer):
 
-    def __init__(self, v=0.0):
-        self.v = v
+    def __init__(self, v):
+        self.v = np.array(v)
 
     def get_vars(self, shape, dtype=np.float32):
         return np.zeros(shape=shape, dtype=dtype) + self.v

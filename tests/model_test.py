@@ -33,5 +33,5 @@ def test_model():
             [10]
         ])
     }
-    model.fit(feed_dict=feed_dict, epoch=5000)
+    model.fit(feed_dict=feed_dict, max_train_itr=5000)
     print("predict: ", model.predict(feed_dict=feed_dict))

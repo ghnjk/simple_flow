@@ -23,6 +23,6 @@ def test_power():
             [1]
         ])
     }
-    model.fit(feed_dict=feed_dict, epoch=10000)
+    model.fit(feed_dict=feed_dict, max_train_itr=10000)
     print("predict: ", model.predict(feed_dict=feed_dict))
     print("b: ", b.values)
