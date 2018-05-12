@@ -1,5 +1,7 @@
 # 神经网络梯度下降与反向传播算法学习
 
+  说明：
+  simple_flow是jk个人用python写的深度学习计算的一个非常简易框架。主要目的是为了学习深度学习的过程， 梯度下降算法原理。没有考略到具体的执行效率
 
 ## 反向传播原理
 
@@ -118,6 +120,8 @@ delta_w = -lr * d(loss)/d(w) = -lr * d(loss)/d(l_2)*d(l_2)/d(w)
 ```
 
   训练效果
+
+  ![mnist.png](doc/mnist.png)
 
 ```
 ('epoch ', 0, 'loss: ', 2.8043772382662313)
@@ -321,5 +325,3 @@ delta_w = -lr * d(loss)/d(w) = -lr * d(loss)/d(l_2)*d(l_2)/d(w)
 ('epoch ', 99, 'loss: ', 0.28978310746358976)
 ('accuracy:', 87)
 ```
-
-  ![mnist.png](doc/mnist.png)
