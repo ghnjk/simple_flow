@@ -12,7 +12,7 @@ def show_line(a, b, label, color):
     plt.plot(x, y, linewidth=3.0, label=label, color=color)
 
 
-def calc_average_loss(x_data, y_data, a, b):
+def calc_average_loss(x_data, y_data):
     sum_loss = 0
     for x, y in zip(x_data, y_data):
         y_p = x * a + b
@@ -20,7 +20,7 @@ def calc_average_loss(x_data, y_data, a, b):
     return sum_loss / float(len(x_data))
 
 
-def min_batch_gradient_decnet(x_data, y_data):
+def min_batch_gradient_decnet(x_data, y_data, a, b):
     from simple_flow.flow import PlaceHolder, Variable, add_flow
     from simple_flow.nn import ConstantInitializer, Add, Pow, ReduceMean, Sub, MatMul, Relu, ReduceSum
     from simple_flow.model import Model
@@ -28,9 +28,9 @@ def min_batch_gradient_decnet(x_data, y_data):
     batch_size = 32
     x = PlaceHolder(name="x", shape=[None, 1])
     y = PlaceHolder(name="y", shape=[None, 1])
-    w_1 = Variable(name="w_1", shape=[1, 20])
-    b_1 = Variable(name="b_2", shape=[20, ], initializer=ConstantInitializer(0.1))
-    w_2 = Variable(name="w_2", shape=[20, 1])
+    w_1 = Variable(name="w_1", shape=[1, 64])
+    b_1 = Variable(name="b_2", shape=[64, ], initializer=ConstantInitializer(0.1))
+    w_2 = Variable(name="w_2", shape=[64, 1])
     b_2 = Variable(name="b_2", shape=[1, ], initializer=ConstantInitializer(0.1))
     l_1 = add_flow(add_flow(x, MatMul(w_1), "dot(x, w_1)"),
                    Add(b_1),
@@ -49,6 +49,7 @@ def min_batch_gradient_decnet(x_data, y_data):
         "loss"
     )
     model = Model(losses=loss, predicts=y_pre, optimizer=GradientDecent())
+    plt.ion()
     for epoch in range(200):
         batch = np.array(random.sample(zip(x_data, y_data), batch_size))
         x_batch = batch[:, 0]
@@ -58,15 +59,18 @@ def min_batch_gradient_decnet(x_data, y_data):
             y: y_batch
         }
         model.fit(feed_dict=feed_dict, max_train_itr=50, verbose=0)
-        if epoch >= 200:
-            break
+        plt.cla()
+        plt.scatter(x_data, y_data)
+        show_line(a, b, "real", "blue")
     # print("w_1: ", w_1.values, "b_1: ", b_1.values)
     # print("w_2: ", w_2.values, "b_2: ", b_2.values)
-    print("gradient decent average loss: ", loss.values)
-    y_draw = model.predict(feed_dict={
-        x: x_data
-    })
-    plt.plot(x_data, y_draw, linewidth=3.0, label="min_batch_gradient_decent", color="red")
+        print("gradient decent average loss: ", loss.values)
+        y_draw = model.predict(feed_dict={
+            x: x_data
+        })
+        plt.plot(x_data, y_draw, linewidth=3.0, label="min_batch_gradient_decent", color="red")
+        plt.draw()
+        plt.pause(0.1)
 
 
 def main():
@@ -75,12 +79,7 @@ def main():
     a = 94
     b = 21
     y_data = [a * i * i + b for i in x_data] + noise
-    show_line(a, b + np.mean(noise), "real", color="blue")
-    plt.scatter(x_data, y_data)
-    min_batch_gradient_decnet(x_data, y_data)
-    plt.grid()
-    plt.legend()
-    plt.show()
+    min_batch_gradient_decnet(x_data, y_data, a, b + np.mean(noise))
 
 
 if __name__ == '__main__':
