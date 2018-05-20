@@ -81,8 +81,8 @@ def predict_with_least_square(x_data, y_data, lam=0.01):
 
 def main():
     x_data = np.linspace(-1, 1, 200)[:, np.newaxis]
-    noise = np.random.normal(0, 2, x_data.shape)
-    a = -50.3
+    noise = np.random.normal(0, 5, x_data.shape)
+    a = 30.3
     b = 309.33
     y_data = [a * i + b for i in x_data] + noise
     show_line(a, b + np.mean(noise), "real", color="blue")
